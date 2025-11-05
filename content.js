@@ -35,7 +35,7 @@ function init() {
   // Create search input
   const searchInput = document.createElement('input');
   searchInput.type = 'text';
-  searchInput.placeholder = 'Search repositories...';
+  searchInput.placeholder = 'Search repositories (and optionally workspace)...';
   searchInput.style.cssText = `
     flex: 1;
     padding: 10px 15px;
@@ -102,6 +102,10 @@ function init() {
   // Filter function
   function filterLocks() {
     const searchTerm = searchInput.value.toLowerCase().trim();
+    const searchParts = searchTerm.split(/\s+/); // Split on whitespace
+    const repoFilter = searchParts[0] || '';
+    const workspaceFilter = searchParts[1] || '';
+    
     let visibleCount = 0;
 
     lockRows.forEach(row => {
@@ -113,9 +117,35 @@ function init() {
 
       const repoName = repoNameElement.textContent.toLowerCase();
       
-      if (searchTerm === '' || repoName.includes(searchTerm)) {
+      // Check if repository matches the first filter term
+      const repoMatches = repoFilter === '' || repoName.includes(repoFilter);
+      
+      if (repoMatches) {
         row.style.display = '';
         visibleCount++;
+        
+        // If there's a second filter term, check workspace and highlight if it matches
+        if (workspaceFilter) {
+          // Find the workspace code element (3rd link's code element)
+          const links = row.querySelectorAll('a.lock-link');
+          const workspaceLink = links[2]; // 3rd link (0-indexed)
+          const workspaceCodeElement = workspaceLink ? workspaceLink.querySelector('code') : null;
+          const workspaceText = workspaceCodeElement ? workspaceCodeElement.textContent.toLowerCase() : '';
+          
+          if (workspaceCodeElement && workspaceText.includes(workspaceFilter)) {
+            workspaceCodeElement.style.background = 'lightgreen';
+          } else if (workspaceCodeElement) {
+            workspaceCodeElement.style.background = '';
+          }
+        } else {
+          // Clear any existing highlights when no workspace filter
+          const links = row.querySelectorAll('a.lock-link');
+          const workspaceLink = links[2];
+          const workspaceCodeElement = workspaceLink ? workspaceLink.querySelector('code') : null;
+          if (workspaceCodeElement) {
+            workspaceCodeElement.style.background = '';
+          }
+        }
       } else {
         row.style.display = 'none';
       }
