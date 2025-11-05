@@ -1,6 +1,9 @@
 // This script runs automatically on the Atlantis page
 console.log('Atlantis Filter Extension loaded!');
 
+// LocalStorage key for persisting search term
+const STORAGE_KEY = 'atlantis-filter-search-term';
+
 // Wait for the page to be fully loaded
 function init() {
   // Find the locks section
@@ -96,9 +99,6 @@ function init() {
     }
   }
 
-  // Initial counter
-  updateCounter(totalRows);
-
   // Filter function
   function filterLocks() {
     const searchTerm = searchInput.value.toLowerCase().trim();
@@ -122,7 +122,19 @@ function init() {
     });
 
     updateCounter(visibleCount);
+    
+    // Save search term to localStorage
+    localStorage.setItem(STORAGE_KEY, searchInput.value);
   }
+
+  // Restore saved search term from localStorage
+  const savedSearchTerm = localStorage.getItem(STORAGE_KEY);
+  if (savedSearchTerm) {
+    searchInput.value = savedSearchTerm;
+  }
+
+  // Initial counter and filter (apply saved search if exists)
+  filterLocks();
 
   // Add event listener for search input
   searchInput.addEventListener('input', filterLocks);
